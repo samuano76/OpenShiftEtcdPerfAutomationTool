@@ -1,0 +1,14 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openshift-etcd-perf
+  labels:
+    app: openshift-etcd-perf
+subjects:
+  - kind: ServiceAccount
+    name: etcd-perf
+    namespace: ocp-etcd-perf
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-etcd-perf

@@ -1,0 +1,36 @@
+kind: CronJob
+apiVersion: batch/v1
+metadata:
+  name: ocp-cronjob-etcd-perf
+  namespace: ocp-etcd-perf
+  labels:
+    app: openshift-etcd-perf
+spec:
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    metadata:
+      labels:
+        app: openshift-etcd-perf
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: openshift-etcd-perf
+        spec:
+          containers:
+            - name: cronjob-etcd-perf
+              image: "registry.redhat.io/openshift4/ose-cli"
+              command:
+                - "/bin/bash"
+                - "-c"
+                - oc get no -l node-role.kubernetes.io/master --no-headers -o name | head -n 1 |xargs -I {} -- oc debug {}  --to-namespace=ocp-etcd-perf -- bash -c 'chroot /host touch /var/lib/etcd/etcd-perf-test && chroot /host podman run --volume /var/lib/etcd:/var/lib/etcd:Z quay.io/openshift-scale/etcd-perf > /var/lib/etcd/etcd-perf-test'
+          restartPolicy: "Never"
+          terminationGracePeriodSeconds: 30
+          activeDeadlineSeconds: 500
+          dnsPolicy: "ClusterFirst"
+          serviceAccountName: "etcd-perf"
+          serviceAccount: "etcd-perf"
